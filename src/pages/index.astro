@@ -1,0 +1,246 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+---
+
+<BaseLayout title="grimbergIT">
+  <section class="hero will-rise">
+    <div class="hero-title">
+      <p class="eyebrow">Independent · Utrecht</p>
+      <h1 class="sr-only">Joel Grimberg</h1>
+      <p class="status" aria-hidden="true">
+        <span class="status-dot"></span>
+        <span class="status-word">Open to work</span>
+      </p>
+      <p class="sr-only">
+        Open to work — available for consultancy, training, workshops, quality assurance, platform
+        engineering and automation.
+      </p>
+    </div>
+    <div class="hero-lede">
+      <p>
+        Consultant and trainer. I help teams ship reliable software — with a bias for calm,
+        unhurried craft.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <p class="eyebrow">Recent writing</p>
+      <a href="/blog" class="section-link">All posts</a>
+    </div>
+    <ul class="post-list" data-testid="post-list">
+      {
+        posts.slice(0, 6).map((p) => (
+          <li>
+            <PostCard
+              href={`/blog/${p.id}/`}
+              title={p.data.title}
+              date={p.data.date}
+              description={p.data.description}
+              tags={p.data.tags}
+            />
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 1.75rem 4rem;
+    padding: 1rem 0 4.5rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      align-items: end;
+      padding: 1rem 0 6rem;
+    }
+  }
+  .hero-title h1 {
+    margin: 0.3rem 0 0;
+  }
+  .hero-title .eyebrow {
+    margin: 0 0 0.5rem;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: #a6d189;
+    box-shadow: 0 0 0 3px rgba(166, 209, 137, 0.16);
+    flex-shrink: 0;
+    animation: statusPulse 2.4s ease-in-out infinite;
+  }
+  /* Word being typed. Cursor is a pseudo-element on this span, so no inter-element
+     whitespace or inline-box gap can appear between the last char and the cursor. */
+  .status-word {
+    display: inline;
+  }
+  .status-word::after {
+    content: '_';
+    color: #a6d189;
+    animation: cursorBlink 0.8s step-end infinite;
+  }
+  @keyframes statusPulse {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 3px rgba(166, 209, 137, 0.16);
+    }
+    50% {
+      opacity: 0.85;
+      box-shadow: 0 0 0 8px rgba(166, 209, 137, 0.05);
+    }
+  }
+  @keyframes cursorBlink {
+    from,
+    to {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  /* Status marker animations are intentionally exempt from reduced-motion:
+     the pulsing dot and blinking cursor are the "alive" signal of the marker
+     and are visually essential to it. */
+
+  .hero-lede {
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--rule);
+  }
+  @media (min-width: 900px) {
+    .hero-lede {
+      padding-top: 0;
+      padding-left: 2rem;
+      border-top: 0;
+      border-left: 1px solid var(--rule);
+      align-self: end;
+    }
+  }
+  .hero-lede p {
+    font-family: var(--font-body);
+    font-size: clamp(1.05rem, 1.35vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0.75rem 0 0;
+    max-width: 34ch;
+  }
+  /* Signature: pilcrow leading the lede — a real typesetter's mark, in reserved rose */
+  .hero-lede p::before {
+    content: '¶\00a0';
+    color: var(--accent-mark);
+    font-weight: 700;
+    font-family: var(--font-body);
+  }
+
+  .section {
+    margin-top: 3.5rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+  }
+  .section-link {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding-bottom: 0.15rem;
+    position: relative;
+    transition: color 200ms ease;
+  }
+  .section-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2.5px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 180ms linear;
+    will-change: transform;
+  }
+  .section-link:hover {
+    color: var(--ink);
+  }
+  .section-link:hover::after {
+    transform: scaleX(1);
+    transition: transform 268ms linear;
+  }
+</style>
+
+<script>
+  // Typewriter cycle for the status marker. Starts with "Open to work" already
+  // rendered so first-paint has visible content; JS takes over shortly after.
+  const words = [
+    'Open to work',
+    'Training',
+    'Consultancy',
+    'Workshops',
+    'Quality Assurance',
+    'Platform Engineering',
+    'Automation',
+  ];
+  const target = document.querySelector('.status-word');
+  if (target) {
+    const TYPE_MS = 70;
+    const ERASE_MS = 35;
+    const HOLD_END_MS = 2400;
+    const HOLD_START_MS = 320;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    (async () => {
+      let idx = 0;
+      // Let the initial word linger first.
+      await sleep(HOLD_END_MS);
+      while (true) {
+        const current = words[idx];
+        for (let i = current.length; i > 0; i--) {
+          target.textContent = current.slice(0, i - 1);
+          await sleep(ERASE_MS);
+        }
+        await sleep(HOLD_START_MS);
+        idx = (idx + 1) % words.length;
+        const next = words[idx];
+        for (let i = 1; i <= next.length; i++) {
+          target.textContent = next.slice(0, i);
+          await sleep(TYPE_MS);
+        }
+        await sleep(HOLD_END_MS);
+      }
+    })();
+  }
+</script>

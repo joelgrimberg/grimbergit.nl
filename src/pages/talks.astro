@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const talks: { title: string; venue: string; date: string; link?: string }[] = [
+  // Populate with real talks. Placeholder shown until then.
+];
+---
+
+<BaseLayout title="Talks — grimbergIT">
+  <article class="surface">
+    <p class="eyebrow">On stage</p>
+    <h1>Talks</h1>
+    <p>
+      A running list of talks I've given, in reverse chronological order. If you'd like me to speak
+      at your event, <a href="/contact">reach out</a>.
+    </p>
+
+    {
+      talks.length === 0 ? (
+        <p>
+          <em>Nothing here yet — check back soon.</em>
+        </p>
+      ) : (
+        <ul class="post-list">
+          {talks.map((t) => (
+            <li class="post-card">
+              <p class="post-meta">
+                {t.date} · {t.venue}
+              </p>
+              <h3>{t.link ? <a href={t.link}>{t.title}</a> : t.title}</h3>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </article>
+</BaseLayout>

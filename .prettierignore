@@ -1,0 +1,10 @@
+dist
+.astro
+node_modules
+package-lock.json
+public/wallpapers
+public/fonts
+
+# Hand-authored MDX with intentional JSX-comment blocks —
+# prettier's MDX mode rewrites them into invalid syntax.
+src/content/blog/_template.mdx

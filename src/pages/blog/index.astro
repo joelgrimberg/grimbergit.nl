@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+---
+
+<BaseLayout title="Blog — grimbergIT">
+  <div class="page-head">
+    <p class="eyebrow">Field notes</p>
+    <h1>Blog</h1>
+    <p class="lede">Mostly on platforms, teams and craft.</p>
+  </div>
+
+  <ul class="post-list" data-testid="post-list">
+    {
+      posts.map((p) => (
+        <li>
+          <PostCard
+            href={`/blog/${p.id}/`}
+            title={p.data.title}
+            date={p.data.date}
+            description={p.data.description}
+            tags={p.data.tags}
+          />
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>
+
+<style>
+  .page-head {
+    margin: 0 0 2rem;
+    max-width: var(--reading-max);
+  }
+  .page-head .eyebrow {
+    margin: 0 0 0.5rem;
+  }
+  .lede {
+    color: var(--ink-muted);
+    margin: 0.75rem 0 0;
+    max-width: 46ch;
+  }
+</style>

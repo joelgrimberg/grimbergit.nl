@@ -1,0 +1,266 @@
+---
+// Contact form is wired to /api/contact (Cloudflare Pages Function at
+// functions/api/contact.js), which forwards to Resend. Same-origin fetch,
+// no CSP relaxations needed. If the endpoint is unreachable (e.g. the LAN
+// preview LXC, which doesn't ship the function) the client falls back to
+// opening the visitor's mail client with a prefilled mailto:.
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const email = 'joel@grimbergit.nl';
+---
+
+<BaseLayout title="Contact — grimbergIT">
+  <article class="surface">
+    <p class="eyebrow">Say hello</p>
+    <h1>Contact</h1>
+    <p>
+      The quickest path is email:
+      <a href={`mailto:${email}`} data-testid="contact-email">{email}</a>.
+    </p>
+
+    <h2>Or send a message</h2>
+    <p class="muted">
+      For consultancy or training enquiries, a paragraph about the shape of the work is more useful
+      than a calendar invite.
+    </p>
+
+    <form
+      id="contact-form"
+      class="contact-form"
+      method="post"
+      action={`mailto:${email}`}
+      enctype="text/plain"
+      data-mailto={email}
+      data-testid="contact-form"
+      autocomplete="on"
+      novalidate
+    >
+      <label>
+        <span>Name</span>
+        <input
+          type="text"
+          name="name"
+          required
+          maxlength="120"
+          autocomplete="name"
+          spellcheck="false"
+        />
+      </label>
+
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          name="email"
+          required
+          maxlength="254"
+          autocomplete="email"
+          inputmode="email"
+          spellcheck="false"
+        />
+      </label>
+
+      <label>
+        <span>Subject</span>
+        <input type="text" name="subject" maxlength="140" autocomplete="off" />
+      </label>
+
+      <label>
+        <span>Message</span>
+        <textarea name="message" required maxlength="4000" rows="6" spellcheck="true"></textarea>
+      </label>
+
+      {/* Honeypot: bots fill it, humans don't see it. */}
+      <div class="hp" aria-hidden="true">
+        <label>
+          Website
+          <input type="text" name="_website" tabindex="-1" autocomplete="off" />
+        </label>
+      </div>
+
+      <p class="form-status" data-testid="form-status" role="status" aria-live="polite"></p>
+
+      <button type="submit" class="submit">Send message</button>
+    </form>
+
+    <h2>Elsewhere</h2>
+    <ul>
+      <li>
+        <a href="https://github.com/joelgrimberg" rel="me noopener noreferrer">GitHub</a>
+      </li>
+      <li>
+        <a href="https://www.linkedin.com/in/joelgrimberg/" rel="me noopener noreferrer">LinkedIn</a
+        >
+      </li>
+    </ul>
+  </article>
+</BaseLayout>
+
+<script>
+  const MAX = { name: 120, email: 254, subject: 140, message: 4000 };
+  const API = '/api/contact';
+
+  function esc(v: string) {
+    return v.replace(/[\r\n]+/g, '\n').trim();
+  }
+
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = form?.querySelector<HTMLElement>('[data-testid="form-status"]') ?? null;
+  const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
+  const to = form?.dataset.mailto ?? '';
+
+  function fallbackToMailto(fields: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }) {
+    if (!status) return;
+    const subjectLine = fields.subject || `Message from ${fields.name}`;
+    const body = `From: ${fields.name} <${fields.email}>\n\n${fields.message}`;
+    const href =
+      `mailto:${encodeURIComponent(to)}` +
+      `?subject=${encodeURIComponent(subjectLine)}` +
+      `&body=${encodeURIComponent(body)}`;
+    status.textContent = 'Opening your email client…';
+    window.location.href = href;
+  }
+
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!form || !status || !submit) return;
+
+    // Honeypot: silently swallow bot submissions (client-side; server also enforces).
+    const hp = (form.elements.namedItem('_website') as HTMLInputElement | null)?.value;
+    if (hp && hp.length > 0) {
+      status.textContent = 'Thanks — your message is on its way.';
+      return;
+    }
+
+    if (!form.checkValidity()) {
+      status.textContent = 'Please fill in name, a valid email, and a message.';
+      form.reportValidity();
+      return;
+    }
+
+    const fields = {
+      name: esc((form.elements.namedItem('name') as HTMLInputElement).value.slice(0, MAX.name)),
+      email: esc((form.elements.namedItem('email') as HTMLInputElement).value.slice(0, MAX.email)),
+      subject: esc(
+        (form.elements.namedItem('subject') as HTMLInputElement).value.slice(0, MAX.subject),
+      ),
+      message: esc(
+        (form.elements.namedItem('message') as HTMLTextAreaElement).value.slice(0, MAX.message),
+      ),
+    };
+
+    submit.disabled = true;
+    status.textContent = 'Sending…';
+
+    try {
+      const resp = await fetch(API, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ...fields, _website: '' }),
+      });
+
+      if (resp.ok) {
+        form.reset();
+        status.textContent = 'Thanks — your message is on its way.';
+        submit.disabled = false;
+        return;
+      }
+
+      // 4xx from the endpoint means our validation disagreed with the server's;
+      // 5xx or non-JSON means the endpoint is down. In either case, fall back
+      // to mailto so the visitor isn't stranded.
+      if (resp.status >= 400 && resp.status < 500) {
+        status.textContent = 'That didn’t send — opening your email client instead.';
+      }
+    } catch {
+      // Network error, or the /api/contact function isn't deployed at this origin
+      // (e.g. the LAN preview LXC). Fall through to mailto.
+    }
+
+    submit.disabled = false;
+    fallbackToMailto(fields);
+  });
+</script>
+
+<style>
+  .muted {
+    color: var(--text-muted);
+  }
+  .contact-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .contact-form label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    font: inherit;
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.8rem;
+    width: 100%;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+  .contact-form textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .submit {
+    justify-self: start;
+    padding: 0.7rem 1.4rem;
+    font: inherit;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .submit:hover {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+  html[data-theme='nerd'] .submit {
+    color: var(--bg);
+  }
+  .form-status {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+  .form-hint {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+</style>

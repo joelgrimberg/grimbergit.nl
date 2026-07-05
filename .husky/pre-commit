@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Pre-commit gate: correctness + supply-chain hygiene.
+# Fast — designed to run in <15s. E2E lives in scripts/deploy.sh.
+
+set -euo pipefail
+
+log() { printf '\033[1;34m→\033[0m %s\n' "$*"; }
+die() { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
+
+if ! git diff --cached --quiet -- package.json package-lock.json; then
+  log "lockfile changed — audit against the new tree"
+fi
+
+log "prettier --check"
+npx --no-install prettier --check . || die "prettier failed — run: npm run format"
+
+log "astro check"
+npx --no-install astro check || die "astro check failed"
+
+log "astro build"
+npx --no-install astro build --silent || die "astro build failed"
+
+log "npm audit (prod, high)"
+npm audit --audit-level=high --omit=dev || die "audit found high/critical vulnerabilities"
+
+if command -v osv-scanner >/dev/null 2>&1; then
+  log "osv-scanner"
+  osv-scanner --lockfile package-lock.json || die "osv-scanner flagged vulnerabilities"
+else
+  log "osv-scanner not installed — skipping (optional)"
+fi

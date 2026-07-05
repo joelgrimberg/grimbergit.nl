@@ -1,0 +1,31 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  date: Date;
+  description: string;
+  tags?: string[];
+}
+
+const { href, title, date, description, tags = [] } = Astro.props;
+const dateStr = date.toISOString().slice(0, 10);
+---
+
+<article class="post-card">
+  <p class="post-meta">
+    <time datetime={dateStr}>{dateStr}</time>
+  </p>
+  <div>
+    <h3><a href={href}>{title}</a></h3>
+    <p>{description}</p>
+    {
+      tags.length > 0 && (
+        <p style="margin-top:0.5rem;">
+          {tags.map((t) => (
+            <span class="tag">{t}</span>
+          ))}
+        </p>
+      )
+    }
+  </div>
+</article>

@@ -1,0 +1,27 @@
+---
+
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  aria-label="Switch visual mode"
+  data-active-mode="serene"
+  id="theme-toggle"></button>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    var current = document.documentElement.getAttribute('data-theme') || 'serene';
+    btn.setAttribute('data-active-mode', current);
+    btn.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'nerd' ? 'serene' : 'nerd';
+      document.documentElement.setAttribute('data-theme', next);
+      btn.setAttribute('data-active-mode', next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch (e) {}
+    });
+  })();
+</script>

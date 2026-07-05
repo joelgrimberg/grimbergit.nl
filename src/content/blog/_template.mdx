@@ -1,0 +1,51 @@
+---
+title: 'Template — copy me to <slug>.mdx and edit'
+description: 'One-line summary shown on cards and used as the page meta description.'
+date: 2026-07-03
+tags: ['example']
+draft: true
+---
+
+{/* prettier-ignore */}
+{/*
+  Copy this file to `src/content/blog/<slug>.mdx` (or `.md` if you don't need MDX)
+  and flip `draft: true` → `draft: false` when it's ready to publish.
+
+  Notes:
+  - <slug> becomes the URL: /blog/<slug>/
+  - `date` accepts YYYY-MM-DD or a full ISO timestamp.
+  - Drafts are hidden from `/`, `/blog/`, and don't get a route generated.
+*/}
+
+Open with a paragraph that stands on its own. This becomes the first thing a reader sees under the
+title, so make it earn the click.
+
+## A subheading
+
+Regular Markdown works everywhere: **bold**, _italics_, [links](https://example.com), and
+`inline code`.
+
+- bullet one
+- bullet two
+- bullet three
+
+1. numbered
+2. list
+3. items
+
+> A short blockquote for a good quote or a hard-earned lesson.
+
+```ts
+// Fenced code blocks get syntax highlighting.
+type Retries = { max: number; backoffMs: number };
+
+const defaultRetries: Retries = { max: 3, backoffMs: 250 };
+```
+
+Images live under `public/` and are referenced by their public path:
+
+![alt text describing the image](/wallpapers/nord.jpg)
+
+Because this file is `.mdx`, you can also `import` an Astro component and render it inline — handy
+for custom callouts, embeds, or anything you don't want to hand-roll in Markdown. For plain prose,
+use `.md` instead and skip the extra tooling.
