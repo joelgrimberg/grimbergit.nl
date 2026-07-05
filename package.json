@@ -9,13 +9,15 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "npm run build && wrangler dev",
     "check": "astro check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
     "audit:high": "npm audit --audit-level=high --omit=dev",
-    "prepare": "husky"
+    "prepare": "husky",
+    "generate-types": "wrangler types",
+    "deploy": "npm run build && wrangler deploy"
   },
   "overrides": {
     "yaml": "2.8.3"
@@ -30,6 +32,10 @@
     "lint-staged": "17.0.8",
     "prettier": "3.9.4",
     "prettier-plugin-astro": "0.14.1",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "wrangler": "4.107.0"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.1.1"
   }
 }
