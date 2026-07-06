@@ -49,8 +49,8 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
     <div class="hero-lede">
       <img
         src="/joel-portrait-400.webp"
-        srcset="/joel-portrait-400.webp 400w, /joel-portrait-800.webp 800w"
-        sizes="340px"
+        srcset="/joel-portrait-400.webp 400w, /joel-portrait-600.webp 600w, /joel-portrait-800.webp 800w"
+        sizes="(min-width: 900px) 340px, 240px"
         alt="Joel Grimberg"
         class="hero-portrait"
         width="400"
