@@ -1,18 +1,34 @@
 import { test, expect } from '@playwright/test';
 
-// This test was written against the Caddy-on-LXC preview era. Cloudflare
-// Workers Static Assets doesn't send Strict-Transport-Security, Referrer-
-// Policy, X-Content-Type-Options, or a Content-Security-Policy by default.
-// Follow-up: either add a `_headers` file to the Cloudflare Pages project,
-// or set them on every response from src/worker.js. Re-enable this suite
-// once one of those is in place.
-test.skip('security headers are set (LXC-era Caddy test — needs re-homing on CF)', async ({
-  request,
-}) => {
+// Security headers are set via public/_headers, which Cloudflare Workers
+// Static Assets applies to every response. If a header goes missing here,
+// corporate scanners will flag the site.
+
+test('security headers are set by Cloudflare', async ({ request }) => {
   const resp = await request.get('/');
   const h = resp.headers();
-  expect(h['strict-transport-security']).toContain('max-age=');
+
+  // HSTS: at least one year, includes subdomains.
+  expect(h['strict-transport-security']).toContain('max-age=31536000');
+  expect(h['strict-transport-security']).toContain('includeSubDomains');
+
+  // MIME sniffing off.
   expect(h['x-content-type-options']).toBe('nosniff');
+
+  // Framing denied — clickjacking protection.
+  expect(h['x-frame-options']).toBe('DENY');
+
+  // Referrer scope.
   expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin');
-  expect(h['content-security-policy']).toContain("default-src 'self'");
+
+  // Permissions-Policy denies risky browser APIs by default.
+  expect(h['permissions-policy']).toContain('camera=()');
+  expect(h['permissions-policy']).toContain('geolocation=()');
+
+  // CSP: self-first, Turnstile allowed for the contact page's widget.
+  const csp = h['content-security-policy'] ?? '';
+  expect(csp).toContain("default-src 'self'");
+  expect(csp).toContain('https://challenges.cloudflare.com');
+  expect(csp).toContain("frame-ancestors 'none'");
+  expect(csp).toContain("form-action 'self'");
 });
