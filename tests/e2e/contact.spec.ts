@@ -62,6 +62,14 @@ test('form POSTs valid submission to /api/contact and shows success', async ({ p
   await form.locator('input[name="email"]').fill('ada@example.com');
   await form.locator('input[name="subject"]').fill('Analytical Engine');
   await form.locator('textarea[name="message"]').fill('Would love to discuss punched cards.');
+  // Inject a fake Turnstile token — headless flow doesn't render the widget.
+  await form.evaluate((f) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'cf-turnstile-response';
+    input.value = 'test-token';
+    f.appendChild(input);
+  });
   await form.locator('button[type="submit"]').click();
 
   await expect(page.locator('[data-testid="form-status"]')).toHaveText(

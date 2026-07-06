@@ -4,7 +4,6 @@ const routes: { path: string; h1: string; title: string }[] = [
   { path: '/', h1: 'Joel Grimberg', title: 'grimbergIT' },
   { path: '/consultancy/', h1: 'Consultancy', title: 'Consultancy — grimbergIT' },
   { path: '/training/', h1: 'Training', title: 'Training — grimbergIT' },
-  { path: '/talks/', h1: 'Talks', title: 'Talks — grimbergIT' },
   { path: '/blog/', h1: 'Blog', title: 'Blog — grimbergIT' },
   { path: '/contact/', h1: 'Contact', title: 'Contact — grimbergIT' },
 ];

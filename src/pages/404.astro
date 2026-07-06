@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Not found — grimbergIT" description="The page you sought doesn't exist.">
+  <article class="notfound">
+    <p class="eyebrow">404 · Not found</p>
+    <h1>Nothing here.</h1>
+
+    <blockquote class="yoda">
+      <p>“You must unlearn what you have learned.”</p>
+      <footer>— Yoda</footer>
+    </blockquote>
+
+    <p class="body">
+      The page you sought doesn't exist. It may have moved, or perhaps it never was.
+    </p>
+
+    <p class="back"><a href="/">← Back to grimbergit.nl</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .notfound {
+    max-width: 60ch;
+    padding: 2rem 0 4rem;
+  }
+  .notfound h1 {
+    margin: 0.5rem 0 2rem;
+  }
+  .yoda {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--paper-sunk);
+    border-left: 3px solid var(--accent-mark);
+    border-radius: var(--radius);
+  }
+  .yoda p {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+    line-height: 1.4;
+    margin: 0;
+    color: var(--ink);
+  }
+  .yoda footer {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    margin-top: 0.75rem;
+  }
+  .body {
+    color: var(--ink-muted);
+  }
+  .back {
+    margin-top: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+</style>

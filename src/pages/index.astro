@@ -11,7 +11,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 <BaseLayout title="grimbergIT">
   <section class="hero will-rise">
     <div class="hero-title">
-      <p class="eyebrow">Independent · Utrecht</p>
+      <p class="eyebrow">Independent</p>
       <h1 class="sr-only">Joel Grimberg</h1>
       <p class="status" aria-hidden="true">
         <span class="status-dot"></span>
@@ -21,12 +21,43 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
         Open to work — available for consultancy, training, workshops, quality assurance, platform
         engineering and automation.
       </p>
+
+      <div class="about-inline">
+        <h2>Hi, I'm Joel Grimberg.</h2>
+        <p>
+          I believe software teams work best when quality, automation, CI, CD — the technical work —
+          and the human work of communicating clearly are given equal weight. Underfund either one
+          and the whole thing tilts. Where I'm most useful is helping teams work better, faster, and
+          with more quality, without pretending you can get one of those without the other two.
+        </p>
+        <p>
+          That usually starts with looking hard at what's actually happening on the ground, then
+          asking what can be reshaped, replaced, or dropped. I'm not good at stopping at "that's
+          just how it is."
+        </p>
+        <p>
+          I care about this work — deeply, honestly. The energy from it is what people tend to
+          notice first about working with me. I take that seriously: energy without direction is
+          just noise, but direction without energy rarely moves anything either.
+        </p>
+        <p class="about-close">
+          I set people and organisations in motion. If yours is somewhere in that pattern,
+          <a href="/contact">get in touch</a>.
+        </p>
+      </div>
     </div>
     <div class="hero-lede">
-      <p>
-        Consultant and trainer. I help teams ship reliable software — with a bias for calm,
-        unhurried craft.
-      </p>
+      <img
+        src="/joel-portrait-400.webp"
+        srcset="/joel-portrait-400.webp 400w, /joel-portrait-800.webp 800w"
+        sizes="340px"
+        alt="Joel Grimberg"
+        class="hero-portrait"
+        width="400"
+        height="533"
+        loading="eager"
+        decoding="async"
+      />
     </div>
   </section>
 
@@ -63,7 +94,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   @media (min-width: 900px) {
     .hero {
       grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-      align-items: end;
+      align-items: start;
       padding: 1rem 0 6rem;
     }
   }
@@ -139,24 +170,43 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
       padding-top: 0;
       padding-left: 2rem;
       border-top: 0;
-      border-left: 1px solid var(--rule);
-      align-self: end;
+      align-self: start;
     }
   }
-  .hero-lede p {
-    font-family: var(--font-body);
-    font-size: clamp(1.05rem, 1.35vw, 1.2rem);
-    line-height: 1.55;
-    color: var(--ink);
-    margin: 0.75rem 0 0;
-    max-width: 34ch;
+  .hero-portrait {
+    display: block;
+    /* Clamp so it looks substantial on desktop, still sensible on mobile */
+    width: clamp(240px, 24vw, 340px);
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    margin: 0;
   }
-  /* Signature: pilcrow leading the lede — a real typesetter's mark, in reserved rose */
-  .hero-lede p::before {
-    content: '¶\00a0';
-    color: var(--accent-mark);
-    font-weight: 700;
+
+  /* Personal blurb sitting under the OPEN TO WORK marker, in the same column. */
+  .about-inline {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    max-width: 58ch;
+  }
+  .about-inline h2 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .about-inline p {
     font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--ink);
+    margin: 0 0 1rem;
+    max-width: none;
+  }
+  .about-inline .about-close {
+    color: var(--ink-muted);
+    padding-top: 0.5rem;
   }
 
   .section {

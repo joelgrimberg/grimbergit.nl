@@ -8,6 +8,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const email = 'joel@grimbergit.nl';
+const turnstileSiteKey = '0x4AAAAAADv9FQs3eL_JrYdB';
 ---
 
 <BaseLayout title="Contact — grimbergIT">
@@ -29,8 +30,7 @@ const email = 'joel@grimbergit.nl';
       id="contact-form"
       class="contact-form"
       method="post"
-      action={`mailto:${email}`}
-      enctype="text/plain"
+      action="/api/contact"
       data-mailto={email}
       data-testid="contact-form"
       autocomplete="on"
@@ -79,10 +79,22 @@ const email = 'joel@grimbergit.nl';
         </label>
       </div>
 
+      {/* Cloudflare Turnstile — invisible/managed challenge, verified server-side. */}
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-theme="dark"
+        data-appearance="interaction-only"
+      >
+      </div>
+
       <p class="form-status" data-testid="form-status" role="status" aria-live="polite"></p>
 
       <button type="submit" class="submit">Send message</button>
     </form>
+
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer
+    ></script>
 
     <h2>Elsewhere</h2>
     <ul>
@@ -155,6 +167,16 @@ const email = 'joel@grimbergit.nl';
       ),
     };
 
+    // Turnstile injects a hidden input named 'cf-turnstile-response' when the
+    // challenge completes. If the widget hasn't produced a token yet (e.g. an
+    // interactive challenge is pending), abort with a helpful message.
+    const turnstileToken =
+      (form.elements.namedItem('cf-turnstile-response') as HTMLInputElement | null)?.value ?? '';
+    if (!turnstileToken) {
+      status.textContent = 'Please complete the verification above and try again.';
+      return;
+    }
+
     submit.disabled = true;
     status.textContent = 'Sending…';
 
@@ -162,7 +184,11 @@ const email = 'joel@grimbergit.nl';
       const resp = await fetch(API, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...fields, _website: '' }),
+        body: JSON.stringify({
+          ...fields,
+          _website: '',
+          'cf-turnstile-response': turnstileToken,
+        }),
       });
 
       if (resp.ok) {

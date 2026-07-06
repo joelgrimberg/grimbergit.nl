@@ -148,6 +148,158 @@ html[data-theme='serene'] .site-header {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
+  row-gap: 0.6rem;
+}
+
+/* Social icon links (GitHub, LinkedIn) — sit between nav and theme toggle. */
+.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  padding: 0.35rem;
+  line-height: 0;
+  transition: color 200ms ease;
+}
+.social a:hover {
+  color: var(--ink);
+}
+
+/* -------- Mobile menu button (2-stripe hamburger) -------- */
+/* Hidden on desktop; shown ≤640px */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-muted);
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease;
+}
+.menu-toggle:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.menu-toggle .stripe {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transform-origin: center center;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.menu-toggle .stripe + .stripe {
+  margin-top: 6px;
+}
+/* Open: stripes slide toward each other and rotate ±45° to form an X */
+.site-header[data-menu='open'] .menu-toggle .stripe:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+.site-header[data-menu='open'] .menu-toggle .stripe:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+/* -------- Mobile layout (≤640px) -------- */
+@media (max-width: 640px) {
+  .site-header {
+    padding: 0.85rem 0;
+  }
+  .site-header .container {
+    gap: 0.75rem;
+  }
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  /* Nav becomes a dropdown drawer below the header. Collapsed by default,
+     revealed when data-menu='open'. */
+  .nav {
+    order: 4;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    border-top: 0;
+    transition:
+      max-height 320ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 220ms ease 40ms,
+      padding 220ms ease,
+      border-color 200ms ease;
+  }
+  .site-header[data-menu='open'] .nav {
+    max-height: 360px;
+    opacity: 1;
+    padding: 0.4rem 0 0.2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* Each nav item is a full-width tap target with its own hairline separator. */
+  .nav a {
+    padding: 0.9rem 0.1rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav a:last-child {
+    border-bottom: 0;
+  }
+  /* Disable the sliding-underline pseudo on mobile — the row itself is the tap target. */
+  .nav a::after {
+    display: none;
+  }
+  /* Highlight the active page with an arrow rather than an underline. */
+  .nav a[aria-current='page'] {
+    color: var(--ink);
+  }
+  .nav a[aria-current='page']::before {
+    content: '→\00a0';
+    color: var(--accent);
+  }
+}
+
+/* Very narrow (older/small phones): squeeze the top row so brand + social +
+   toggle + hamburger all fit on one line. */
+@media (max-width: 380px) {
+  .site-header .container {
+    gap: 0.5rem;
+  }
+  .site-header .social {
+    gap: 0.35rem;
+  }
+  .site-header .social a {
+    padding: 0.25rem;
+  }
+  .site-header .theme-toggle {
+    padding: 0.3rem 0.55rem;
+    letter-spacing: 0.05em;
+  }
+  .menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+  .menu-toggle .stripe {
+    width: 18px;
+  }
 }
 .brand {
   font-family: var(--font-display);

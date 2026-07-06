@@ -1,0 +1,162 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const workshops = [
+  {
+    slug: 'foundations',
+    title: 'Foundations',
+    teaser:
+      'For manual testers making the jump into automation. Command line, IDE, Git, and the shape of a first automated test — without pretending any of it is optional.',
+  },
+  {
+    slug: 'cypress',
+    title: 'Cypress',
+    teaser:
+      'End-to-end tests teams can keep. As one of the four Dutch Cypress Ambassadors, this is where I have spent the most time — from custom commands to CI patterns that keep flake out.',
+  },
+  {
+    slug: 'playwright',
+    title: 'Playwright',
+    teaser:
+      'Cross-browser coverage and richer context control — auth flows, network interception, tracing. Well-suited when the plumbing has to be part of the design.',
+  },
+  {
+    slug: 'api-testing',
+    title: 'API Testing',
+    teaser:
+      'The layer that quietly carries the weight of a delivery pipeline. Contract testing, schema validation, and where API tests belong in a suite.',
+  },
+  {
+    slug: 'ai',
+    title: 'AI in Practice',
+    teaser:
+      'Not the "here is a nice prompt" kind. Hands-on with Copilot, Claude, and Cursor — focused on the boring wins and the boundaries.',
+  },
+  {
+    slug: 'innovation-days',
+    title: 'Innovation Days',
+    teaser:
+      'A day to try something outside the roadmap — a new tool, a proof of concept, or taking apart something that has grown stale.',
+  },
+];
+---
+
+<BaseLayout title="Training — grimbergIT">
+  <img
+    src="/joel-training.webp"
+    alt="Joel working on a sticker-covered laptop with a fresh coffee"
+    class="training-hero"
+    width="2400"
+    height="1600"
+    loading="eager"
+    decoding="async"
+  />
+  <article class="surface">
+    <p class="eyebrow">Workshops</p>
+    <h1>Training</h1>
+    <p>
+      Teams book me when they need engineers to leave the room able to do the work themselves — not
+      just entertained for a day. Sessions are hands-on and outcome-focused: every workshop ends
+      with code the team wrote, and a written recap they can bring back to the rest of the
+      organisation.
+    </p>
+  </article>
+
+  <ul class="training-grid" data-testid="training-grid">
+    {
+      workshops.map((w) => (
+        <li class="training-card">
+          <a href={`/training/${w.slug}/`}>
+            <img
+              src={`/cards/${w.slug}.webp`}
+              alt={w.title}
+              width="800"
+              height="800"
+              loading="lazy"
+              decoding="async"
+            />
+            <p class="training-teaser">{w.teaser}</p>
+            <span class="training-more">Read more →</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <article class="surface">
+    <h2>How I work</h2>
+    <p>
+      Sessions are shaped to what the team needs — half-day intensives, one-day workshops, or
+      multi-week cohorts with homework repos in between. In-house or remote works either way; the
+      format that survives depends more on the team than the venue. What doesn't change is that
+      every session is hands-on. No slideware.
+    </p>
+    <p>
+      Every engagement ends with a written recap: what was covered, what the team decided, what to
+      try next. If the notes wouldn't be useful to the person who wasn't in the room, they weren't
+      worth writing.
+    </p>
+    <p><a href="/contact">Book a session →</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .training-hero {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    margin: 0 0 2.5rem;
+  }
+  .training-grid {
+    list-style: none;
+    padding: 0;
+    margin: 3rem 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 720px) {
+    .training-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+  }
+  .training-card a {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .training-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .training-card:hover img {
+    transform: scale(1.02);
+  }
+  .training-teaser {
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin: 1rem 0 0.5rem;
+    max-width: none;
+  }
+  .training-more {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    transition: color 200ms ease;
+  }
+  .training-card:hover .training-more {
+    color: var(--accent-strong);
+  }
+</style>

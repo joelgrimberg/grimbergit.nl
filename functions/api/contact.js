@@ -36,21 +36,59 @@ function isEmail(v) {
   return typeof v === 'string' && v.length <= MAX.email && EMAIL_RE.test(v);
 }
 
+async function verifyTurnstile(token, secret, remoteIp) {
+  const params = new URLSearchParams();
+  params.set('secret', secret);
+  params.set('response', token);
+  if (remoteIp) params.set('remoteip', remoteIp);
+
+  const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: params,
+  });
+  if (!resp.ok) return { success: false, 'error-codes': ['siteverify-http-' + resp.status] };
+  return resp.json();
+}
+
 export const onRequestPost = async ({ request, env }) => {
-  if (!env.RESEND_API_KEY) {
+  if (!env.RESEND_API_KEY || !env.TURNSTILE_SECRET_KEY) {
     return json({ error: 'server-misconfigured' }, 500);
   }
 
+  // Accept either JSON (JS fetch path) or form-encoded (no-JS submit).
   let body;
+  const ct = (request.headers.get('content-type') || '').toLowerCase();
   try {
-    body = await request.json();
+    if (ct.includes('application/json')) {
+      body = await request.json();
+    } else if (
+      ct.includes('application/x-www-form-urlencoded') ||
+      ct.includes('multipart/form-data')
+    ) {
+      const form = await request.formData();
+      body = Object.fromEntries(form.entries());
+    } else {
+      return json({ error: 'unsupported-media-type' }, 415);
+    }
   } catch {
-    return json({ error: 'invalid-json' }, 400);
+    return json({ error: 'invalid-body' }, 400);
   }
 
   // Honeypot: silently accept, don't leak that the request was rejected.
   if (typeof body._website === 'string' && body._website.length > 0) {
     return json({ ok: true });
+  }
+
+  // Turnstile verification — required.
+  const turnstileToken = body['cf-turnstile-response'];
+  if (typeof turnstileToken !== 'string' || turnstileToken.length === 0) {
+    return json({ error: 'missing-turnstile-token' }, 400);
+  }
+  const remoteIp = request.headers.get('cf-connecting-ip') || undefined;
+  const verify = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET_KEY, remoteIp);
+  if (!verify.success) {
+    return json({ error: 'turnstile-failed', codes: verify['error-codes'] ?? [] }, 403);
   }
 
   const name = clean(body.name, MAX.name);

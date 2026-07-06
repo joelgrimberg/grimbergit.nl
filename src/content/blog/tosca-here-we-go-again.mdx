@@ -1,0 +1,49 @@
+---
+title: 'Tosca.. here we go (again) — part 1'
+description: 'A field note on a Tosca implementation, the antipatterns it invites, and what it does to a team’s appetite for good tests.'
+date: 2026-07-05
+tags: ['tosca', 'automation', 'antipattern']
+draft: false
+---
+
+I had a conversation recently with someone whose team is standing up Tosca. They're in the early
+phase — the tool is configured, developers are shipping features and writing their unit tests,
+and the first Tosca tests are being written. Or, more accurately, clicked together — because
+Tosca comes with a heavy UI, and that's the intended way to build them. It runs only on
+Windows.
+
+The conversation stayed with me. Most of what came out of it wasn't news — it was the shape of a
+pattern I've seen enough times that it's worth writing down.
+
+If you ever want to migrate off Tosca to another tool, there is no easy way to export your test
+cases. Code-based frameworks give you that option; Tosca does not.
+
+## Patterns
+
+**Development is Windows-only.**
+
+**Every developer expected to touch it needs an expensive training first.**
+
+**Licensing is per developer.**
+
+**Developers don't want to click around a heavy UI to create tests.**
+
+**Tosca is not connected to Git.** Which means it is hard to relate a change in the tests to the
+change in the code they cover.
+
+**Tosca doesn't de-duplicate tests** that are already covered by earlier tests running in CI.
+
+**Tosca often ends up as the antipattern of CI.** I've spoken to consultants implementing Tosca
+professionally, and their team's workflow was: run the full suite overnight, fix whatever broke
+the following day. That means E2E tests are being run against many commits at once, and when
+something fails, it is harder to debug what caused it.
+
+**Debuggability is behind.** The frontend test frameworks that lead the field today — Playwright,
+Cypress — capture the DOM state at every step, so you can see the state just before and at the
+moment of failure. Tosca does not work that way.
+
+## The effect
+
+Developers won't create better tests.
+
+_Part two, soon._
