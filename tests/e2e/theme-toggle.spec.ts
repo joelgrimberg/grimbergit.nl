@@ -1,23 +1,24 @@
 import { test, expect } from '@playwright/test';
 
+const themeToggle = (page: import('@playwright/test').Page) =>
+  page.getByRole('button', { name: 'Switch visual mode' });
+
 test('default theme is serene', async ({ page }) => {
   await page.goto('/');
+  // data-theme is a design-system state marker on <html>, not user-facing content.
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'serene');
 });
 
 test('toggle switches to nerd and back, persists across reload', async ({ page }) => {
   await page.goto('/');
-  const toggle = page.locator('#theme-toggle');
 
-  await toggle.click();
+  await themeToggle(page).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'nerd');
 
-  // Reload → still nerd (localStorage persistence).
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'nerd');
 
-  // Toggle back.
-  await page.locator('#theme-toggle').click();
+  await themeToggle(page).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'serene');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'serene');
@@ -33,7 +34,7 @@ test('nord wallpaper is visible only in nerd mode', async ({ page }) => {
 
   expect(await readOpacityToken(), 'serene --wallpaper-opacity').toBe('0');
 
-  await page.locator('#theme-toggle').click();
+  await themeToggle(page).click();
   const nerd = parseFloat(await readOpacityToken());
   expect(nerd, 'nerd --wallpaper-opacity').toBeGreaterThan(0.3);
   expect(nerd, 'nerd --wallpaper-opacity').toBeLessThanOrEqual(1);

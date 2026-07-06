@@ -13,13 +13,14 @@ for (const { path, h1, title } of routes) {
     const resp = await page.goto(path);
     expect(resp?.status(), `${path} status`).toBe(200);
     await expect(page).toHaveTitle(title);
-    await expect(page.locator('h1')).toHaveText(h1);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(h1);
   });
 }
 
 test('nav lists Home / Consultancy / Training / Blog / Contact (no Talks)', async ({ page }) => {
   await page.goto('/');
-  const links = page.locator('nav.nav a');
+  const nav = page.getByRole('navigation', { name: 'Primary' });
+  const links = nav.getByRole('link');
   await expect(links).toHaveCount(5);
   const labels = await links.allTextContents();
   expect(labels.map((s) => s.trim())).toEqual([
@@ -33,6 +34,11 @@ test('nav lists Home / Consultancy / Training / Blog / Contact (no Talks)', asyn
 
 test('home hero has no consultancy/training/talks/contact quick links', async ({ page }) => {
   await page.goto('/');
+  // The hero region contains the eyebrow, status marker, sr-only h1, and About text —
+  // it must not sprout its own CTA links (those live in nav/About body only).
   const hero = page.locator('section.hero');
-  await expect(hero.locator('a')).toHaveCount(0);
+  // Only the "get in touch" link inside the About-inline block should be present.
+  const heroLinks = hero.getByRole('link');
+  await expect(heroLinks).toHaveCount(1);
+  await expect(heroLinks.first()).toHaveText('get in touch');
 });

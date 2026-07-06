@@ -4,43 +4,42 @@ const EMAIL = 'joel@grimbergit.nl';
 
 test('contact page shows the correct mailto', async ({ page }) => {
   await page.goto('/contact/');
-  const link = page.locator('[data-testid="contact-email"]');
+  const link = page.getByRole('link', { name: EMAIL });
   await expect(link).toHaveAttribute('href', `mailto:${EMAIL}`);
-  await expect(link).toHaveText(EMAIL);
 });
 
 test('contact form fields render with required/maxlength constraints', async ({ page }) => {
   await page.goto('/contact/');
-  const form = page.locator('[data-testid="contact-form"]');
+  const form = page.getByRole('form', { name: 'Contact form' });
   await expect(form).toBeVisible();
 
-  await expect(form.locator('input[name="name"]')).toHaveAttribute('required', '');
-  await expect(form.locator('input[name="email"]')).toHaveAttribute('type', 'email');
-  await expect(form.locator('input[name="email"]')).toHaveAttribute('required', '');
-  await expect(form.locator('textarea[name="message"]')).toHaveAttribute('required', '');
-  await expect(form.locator('textarea[name="message"]')).toHaveAttribute('maxlength', '4000');
+  await expect(form.getByLabel('Name')).toHaveAttribute('required', '');
+  await expect(form.getByLabel('Email')).toHaveAttribute('type', 'email');
+  await expect(form.getByLabel('Email')).toHaveAttribute('required', '');
+  await expect(form.getByLabel('Message')).toHaveAttribute('required', '');
+  await expect(form.getByLabel('Message')).toHaveAttribute('maxlength', '4000');
 
-  await expect(form.locator('button[type="submit"]')).toHaveText('Send message');
+  await expect(form.getByRole('button', { name: 'Send message' })).toBeVisible();
 });
 
 test('honeypot field is present and positioned off-screen', async ({ page }) => {
   await page.goto('/contact/');
-  const hp = page.locator('[data-testid="contact-form"] input[name="_website"]');
+  // Honeypot is intentionally NOT accessible — attribute selector is the
+  // correct query here; an accessibility-first query would (rightly) skip it.
+  const hp = page.locator('input[name="_website"]');
   await expect(hp).toHaveCount(1);
   const box = await hp.evaluate((el) => {
     const r = el.getBoundingClientRect();
     return { x: r.x, y: r.y, w: r.width, h: r.height };
   });
-  // Wrapped in .hp { position:absolute; left:-10000px; width:1px; height:1px }
   expect(box.x).toBeLessThan(-1000);
 });
 
 test('submit with missing fields blocked by native validation', async ({ page }) => {
   await page.goto('/contact/');
-  await page.locator('[data-testid="contact-form"] button[type="submit"]').click();
-  const valid = await page.locator('[data-testid="contact-form"]').evaluate((el) => {
-    return (el as HTMLFormElement).checkValidity();
-  });
+  const form = page.getByRole('form', { name: 'Contact form' });
+  await form.getByRole('button', { name: 'Send message' }).click();
+  const valid = await form.evaluate((el) => (el as HTMLFormElement).checkValidity());
   expect(valid).toBe(false);
 });
 
@@ -57,24 +56,28 @@ test('form POSTs valid submission to /api/contact and shows success', async ({ p
   });
 
   await page.goto('/contact/');
-  const form = page.locator('[data-testid="contact-form"]');
-  await form.locator('input[name="name"]').fill('Ada Lovelace');
-  await form.locator('input[name="email"]').fill('ada@example.com');
-  await form.locator('input[name="subject"]').fill('Analytical Engine');
-  await form.locator('textarea[name="message"]').fill('Would love to discuss punched cards.');
-  // Inject a fake Turnstile token — headless flow doesn't render the widget.
+  const form = page.getByRole('form', { name: 'Contact form' });
+  await form.getByLabel('Name').fill('Ada Lovelace');
+  await form.getByLabel('Email').fill('ada@example.com');
+  await form.getByLabel('Subject').fill('Analytical Engine');
+  await form.getByLabel('Message').fill('Would love to discuss punched cards.');
+  // Set a fake Turnstile token. If Turnstile's own hidden input has already
+  // been injected by its script, overwrite its value; otherwise create ours.
+  // `form.elements.namedItem(...)` returns the first match, so appending a
+  // second input wouldn't help.
   await form.evaluate((f) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'cf-turnstile-response';
+    let input = f.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'cf-turnstile-response';
+      f.appendChild(input);
+    }
     input.value = 'test-token';
-    f.appendChild(input);
   });
-  await form.locator('button[type="submit"]').click();
+  await form.getByRole('button', { name: 'Send message' }).click();
 
-  await expect(page.locator('[data-testid="form-status"]')).toHaveText(
-    'Thanks — your message is on its way.',
-  );
+  await expect(page.getByRole('status')).toHaveText('Thanks — your message is on its way.');
   expect(received).toMatchObject({
     name: 'Ada Lovelace',
     email: 'ada@example.com',
@@ -85,19 +88,17 @@ test('form POSTs valid submission to /api/contact and shows success', async ({ p
 
 test('honeypot submission is silently accepted (bot path)', async ({ page }) => {
   await page.goto('/contact/');
-  const form = page.locator('[data-testid="contact-form"]');
-  await form.locator('input[name="name"]').fill('spammer');
-  await form.locator('input[name="email"]').fill('bot@example.com');
-  await form.locator('textarea[name="message"]').fill('buy my thing');
-  // Force-fill the honeypot the way a naive bot would.
-  await form.locator('input[name="_website"]').evaluate((el) => {
+  const form = page.getByRole('form', { name: 'Contact form' });
+  await form.getByLabel('Name').fill('spammer');
+  await form.getByLabel('Email').fill('bot@example.com');
+  await form.getByLabel('Message').fill('buy my thing');
+  // Force-fill the honeypot the way a naive bot would (attribute selector — see note above).
+  await page.locator('input[name="_website"]').evaluate((el) => {
     (el as HTMLInputElement).value = 'http://evil.example';
   });
-  await form.locator('button[type="submit"]').click();
+  await form.getByRole('button', { name: 'Send message' }).click();
 
   // Page must NOT navigate away (no mailto: launch), and status shows the fake-success message.
   await expect(page).toHaveURL(/\/contact\/?$/);
-  await expect(page.locator('[data-testid="form-status"]')).toHaveText(
-    'Thanks — your message is on its way.',
-  );
+  await expect(page.getByRole('status')).toHaveText('Thanks — your message is on its way.');
 });
