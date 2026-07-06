@@ -45,9 +45,19 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Canonicalise: www.grimbergit.nl → apex.
+    // Canonicalise: force HTTPS, and collapse www → apex, in a single 301.
+    // The Worker runs on both http: and https: for Custom Domains, so we can't
+    // rely on CF's "Always Use HTTPS" edge setting to do this for us.
+    let needsRedirect = false;
+    if (url.protocol === 'http:') {
+      url.protocol = 'https:';
+      needsRedirect = true;
+    }
     if (url.hostname === 'www.grimbergit.nl') {
       url.hostname = 'grimbergit.nl';
+      needsRedirect = true;
+    }
+    if (needsRedirect) {
       return withSecurityHeaders(Response.redirect(url.toString(), 301));
     }
 
