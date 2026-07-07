@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://grimbergit.nl/sitemap-index.xml

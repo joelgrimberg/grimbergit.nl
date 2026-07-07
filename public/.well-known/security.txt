@@ -1,0 +1,4 @@
+Contact: mailto:joel@grimbergit.nl
+Preferred-Languages: en, nl
+Canonical: https://grimbergit.nl/.well-known/security.txt
+Expires: 2027-07-07T00:00:00.000Z

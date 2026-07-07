@@ -9,6 +9,8 @@ const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()',
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -83,6 +85,14 @@ export default {
           headers: { allow: 'POST' },
         }),
       );
+    }
+
+    // Astro emits /sitemap-index.xml; scanners (and Google) look for /sitemap.xml.
+    // Serve the same bytes under both paths.
+    if (url.pathname === '/sitemap.xml') {
+      const rewritten = new URL(request.url);
+      rewritten.pathname = '/sitemap-index.xml';
+      return withSecurityHeaders(await env.ASSETS.fetch(new Request(rewritten, request)));
     }
 
     // Everything else: serve from the static asset bucket, decorated.
